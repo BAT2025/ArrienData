@@ -1,1 +1,3 @@
-import { getAvatarUrl } from "../lib/getAvatarUrl";
+export default function AvatarPreview({ userId }: { userId: string }) {
+  // ...
+}
