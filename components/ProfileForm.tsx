@@ -1,46 +1,89 @@
 "use client";
 
 import { useState } from "react";
-import AvatarUpload from "./AvatarUpload";
-import CertificateUpload from "./CertificateUpload";
+import { supabase } from "../lib/supabase";
+import { useUser } from "../lib/auth";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 export default function ProfileForm({ existingData }: { existingData: any }) {
-  const [tipo, setTipo] = useState(existingData?.tipo ?? "propietario");
-  const [nombre, setNombre] = useState(existingData?.nombre ?? "");
-  const [direccion, setDireccion] = useState(existingData?.direccion ?? "");
+  const { user } = useUser();
+  const [form, setForm] = useState({
+    nombre: existingData?.nombre || "",
+    documento: existingData?.documento || "",
+    direccion: existingData?.direccion || "",
+    telefono: existingData?.telefono || "",
+    rol: existingData?.rol || "propietario",
+  });
+  const [loading, setLoading] = useState(false);
+  const [mensaje, setMensaje] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Perfil guardado:", { tipo, nombre, direccion });
-    // Aquí puedes guardar en Supabase
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setMensaje("");
+
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({
+        user_id: user?.id,
+        ...form,
+      });
+
+    if (error) {
+      console.error("Error al guardar:", error);
+      setMensaje("❌ Hubo un error al guardar.");
+    } else {
+      setMensaje("✅ Perfil guardado exitosamente.");
+    }
+
+    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-xl font-semibold mb-2">Perfil del usuario</h2>
-
-      <label className="block">Tipo de usuario:</label>
-      <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="w-full border p-1">
-        <option value="propietario">Propietario</option>
-        <option value="locatario">Locatario</option>
+    <div className="space-y-4">
+      <Input
+        name="nombre"
+        placeholder="Nombre completo"
+        value={form.nombre}
+        onChange={handleChange}
+      />
+      <Input
+        name="documento"
+        placeholder="Documento"
+        value={form.documento}
+        onChange={handleChange}
+      />
+      <Input
+        name="direccion"
+        placeholder="Dirección de notificación"
+        value={form.direccion}
+        onChange={handleChange}
+      />
+      <Input
+        name="telefono"
+        placeholder="Teléfono"
+        value={form.telefono}
+        onChange={handleChange}
+      />
+      <select
+        name="rol"
+        className="w-full border rounded px-2 py-2"
+        value={form.rol}
+        onChange={handleChange}
+      >
+        <option value="propietario">Propietario / Arrendador</option>
+        <option value="locatario">Locatario / Arrendatario</option>
       </select>
 
-      <div>
-        <label className="block">Nombre completo</label>
-        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="w-full border px-2 py-1" />
-      </div>
+      <Button onClick={handleSubmit} disabled={loading}>
+        {loading ? "Guardando..." : "Guardar perfil"}
+      </Button>
 
-      <div>
-        <label className="block">Dirección de notificación</label>
-        <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value)} className="w-full border px-2 py-1" />
-      </div>
-
-      <AvatarUpload />
-      <CertificateUpload />
-
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        Guardar perfil
-      </button>
-    </form>
+      {mensaje && <p className="text-sm mt-2">{mensaje}</p>}
+    </div>
   );
 }
