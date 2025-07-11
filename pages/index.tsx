@@ -1,48 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { supabase } from "../lib/supabase";
-import { useRouter } from "next/router";
+import Link from "next/link";
 
-export default function Ingresar() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const router = useRouter();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) setError(error.message);
-    else router.push("/perfil");
-  };
-
+export default function Home() {
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Ingresar</h1>
-      <form onSubmit={handleLogin} className="space-y-4">
-        <input
-          className="w-full border px-2 py-1"
-          type="email"
-          placeholder="Correo"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="w-full border px-2 py-1"
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Ingresar
-        </button>
-      </form>
+    <div className="max-w-xl mx-auto p-6 text-center">
+      <h1 className="text-3xl font-bold mb-4">Bienvenido a ArrienData</h1>
+      <p className="mb-6">
+        La plataforma donde los propietarios pueden consultar el historial de sus locatarios y tomar decisiones informadas antes de arrendar.
+      </p>
+
+      <div className="space-x-4">
+        <Link href="/ingresar">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Ingresar
+          </button>
+        </Link>
+        <Link href="/registrarse">
+          <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Registrarse
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }
