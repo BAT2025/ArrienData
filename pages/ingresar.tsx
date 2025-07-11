@@ -3,34 +3,32 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabase";
-import Toast from "../components/ui/Toast"; // 👈 Importa el toast
 
 export default function IngresarPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [showToast, setShowToast] = useState(false); // 👈 Estado para mostrar toast
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (error) {
       if (error.message.includes("Email not confirmed")) {
-        setErrorMsg("⚠️ Tu correo aún no está confirmado. Revisa tu bandeja de entrada o spam.");
+        setErrorMsg("⚠️ Tu correo aún no está confirmado.");
       } else {
-        setErrorMsg("❌ Credenciales incorrectas. Intenta nuevamente.");
+        setErrorMsg("❌ Credenciales incorrectas.");
       }
       return;
     }
 
-    setShowToast(true); // 👈 Mostrar toast
-    setTimeout(() => {
-      router.push("/perfil");
-    }, 1500);
+    router.push("/perfil");
   };
 
   return (
@@ -68,14 +66,13 @@ export default function IngresarPage() {
         </button>
       </form>
 
+      {/* ✅ Enlace al registro */}
       <p className="mt-4 text-sm text-center">
         ¿No tienes cuenta?{" "}
         <a href="/registrarse" className="text-blue-600 hover:underline">
           Regístrate aquí
         </a>
       </p>
-
-      {showToast && <Toast message="¡Bienvenido de nuevo! 🎉" />} {/* 👈 Aquí se muestra */}
     </div>
   );
 }
