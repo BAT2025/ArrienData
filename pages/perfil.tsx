@@ -15,6 +15,7 @@ export default function PerfilPage() {
 
   useEffect(() => {
     if (!user) return;
+
     const fetchPerfil = async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -22,7 +23,16 @@ export default function PerfilPage() {
         .eq("user_id", user.id)
         .single();
 
-      if (!error) setPerfil(data);
+      if (error) {
+        console.error("Error al obtener perfil:", error);
+      } else {
+        if (!data?.rol) {
+          router.push("/definir-rol"); // 🔁 Redirige si no tiene rol
+          return;
+        }
+        setPerfil(data);
+      }
+
       setLoading(false);
     };
 
