@@ -1,112 +1,16 @@
 {
   "polyfillFiles": [
-    "static/chunks/polyfills-78c92fac7aa8fdd8.js"
+    "static/chunks/polyfills.js"
   ],
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/umwY28K9VBLAhVCuEm4ov/_buildManifest.js",
-    "static/umwY28K9VBLAhVCuEm4ov/_ssgManifest.js"
+    "static/development/_buildManifest.js",
+    "static/development/_ssgManifest.js"
   ],
   "rootMainFiles": [],
   "pages": {
-    "/": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/664-bb67f9188f7509cd.js",
-      "static/chunks/pages/index-7ac8d41c75a5a166.js"
-    ],
-    "/_app": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/pages/_app-41f08bbd547bf0bf.js"
-    ],
-    "/_error": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/pages/_error-77823ddac6993d35.js"
-    ],
-    "/calificar": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/332-2d0cb4416365c819.js",
-      "static/chunks/pages/calificar-b8a4862e26313a7f.js"
-    ],
-    "/dashboard": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/332-2d0cb4416365c819.js",
-      "static/chunks/pages/dashboard-8c6fcbd9d5f16cb5.js"
-    ],
-    "/definir-rol": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/pages/definir-rol-4a87a3de96c96df3.js"
-    ],
-    "/historial": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/332-2d0cb4416365c819.js",
-      "static/chunks/pages/historial-0c922cdde405d49f.js"
-    ],
-    "/ingresar": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/pages/ingresar-04a15b5e57a63621.js"
-    ],
-    "/perfil": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/332-2d0cb4416365c819.js",
-      "static/chunks/664-bb67f9188f7509cd.js",
-      "static/chunks/pages/perfil-632a04794b45c240.js"
-    ],
-    "/registrarse": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/332-2d0cb4416365c819.js",
-      "static/chunks/664-bb67f9188f7509cd.js",
-      "static/chunks/pages/registrarse-06f5ffe4cdc5a458.js"
-    ],
-    "/terminos": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/pages/terminos-2f0328e1bc02acee.js"
-    ],
-    "/tratamiento-datos": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/pages/tratamiento-datos-208efdfb48a5658f.js"
-    ],
-    "/ver-locatario": [
-      "static/chunks/webpack-a1d6a54473706013.js",
-      "static/chunks/framework-2c16ac744b6cdea6.js",
-      "static/chunks/main-f61746aa183f4a64.js",
-      "static/chunks/e78312c5-c809a05018a0f21c.js",
-      "static/chunks/844-bd13ca72578c6e44.js",
-      "static/chunks/332-2d0cb4416365c819.js",
-      "static/chunks/412-273227b5ffd25101.js",
-      "static/chunks/pages/ver-locatario-91c822a8b6bd5a15.js"
-    ]
+    "/_app": []
   },
   "ampFirstPages": []
 }
