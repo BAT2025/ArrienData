@@ -10,51 +10,66 @@ export default function DefinirRolPage() {
   const { user } = useUser()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
 
   useEffect(() => {
-    if (!user) return
+    const verificarPerfil = async () => {
+      if (!user) return
 
-    const fetchPerfil = async () => {
-      const { data, error } = await supabase
+      if (!user.email_confirmed_at) {
+        setError('⚠️ Debes confirmar tu correo electrónico antes de continuar.')
+        setLoading(false)
+        return
+      }
+
+      const { data: perfil, error: perfilError } = await supabase
         .from('profiles')
         .select('rol')
         .eq('user_id', user.id)
         .single()
 
-      if (error) {
+      if (perfilError) {
         setError('❌ No se pudo obtener tu perfil.')
         setLoading(false)
         return
       }
 
-      if (data?.rol) {
+      if (perfil?.rol) {
         router.replace('/perfil')
       } else {
         setLoading(false)
       }
     }
 
-    fetchPerfil()
+    verificarPerfil()
   }, [user])
 
   const handleRolSeleccionado = async (rol: 'arrendador' | 'locatario') => {
-    setLoading(true)
+    if (!user || submitting) return
 
-    const { error } = await supabase
+    setSubmitting(true)
+    setError('')
+    setToast(null)
+
+    const { error: updateError } = await supabase
       .from('profiles')
       .update({ rol })
       .eq('user_id', user.id)
 
-    if (error) {
-      setError('❌ Error al guardar el rol.')
-      setLoading(false)
+    if (updateError) {
+      console.error('Error al actualizar rol:', updateError.message)
+      setToast({ message: '❌ No se pudo guardar el rol. Intenta nuevamente.', type: 'error' })
+      setSubmitting(false)
       return
     }
 
-    setSuccess(true)
-    setTimeout(() => router.push('/perfil'), 2000)
+    setToast({ message: '✅ Rol guardado. Redirigiendo...', type: 'success' })
+
+    setTimeout(() => {
+      router.push('/perfil')
+    }, 1500)
   }
 
   if (!user || loading) {
@@ -64,26 +79,30 @@ export default function DefinirRolPage() {
   return (
     <div className="max-w-md mx-auto p-6 text-center">
       <h1 className="text-2xl font-bold mb-4">¿Cuál es tu rol en ArrienData?</h1>
-      <p className="mb-6 text-gray-600">Elige una opción para personalizar tu experiencia.</p>
+      <p className="mb-6 text-gray-600">Selecciona una opción para personalizar tu experiencia.</p>
 
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
       <div className="space-y-4">
         <button
           onClick={() => handleRolSeleccionado('arrendador')}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className={`w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={submitting}
         >
           Soy propietario (arrendador)
         </button>
         <button
           onClick={() => handleRolSeleccionado('locatario')}
-          className="w-full bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700"
+          className={`w-full bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={submitting}
         >
           Soy quien desea arrendar (locatario)
         </button>
       </div>
 
-      {success && <Toast message="✅ Rol guardado. Redirigiendo..." />}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} />
+      )}
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { withAuth } from '@/lib/withAuth'
 import Layout from '@/components/Layout'
 import AvatarPreview from '@/components/AvatarPreview'
 import Link from 'next/link'
+import Toast from '@/components/ui/Toast'
 
 type Perfil = {
   full_name: string
@@ -19,12 +20,16 @@ function PerfilPage() {
   const router = useRouter()
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [showToast, setShowToast] = useState(false)
 
   useEffect(() => {
     if (!user?.id) return
 
     const fetchPerfil = async () => {
       setLoading(true)
+      setError('')
+
       const { data, error } = await supabase
         .from('profiles')
         .select('full_name, rol')
@@ -32,13 +37,15 @@ function PerfilPage() {
         .single()
 
       if (error) {
-        console.error('Error al obtener perfil:', error.message)
+        console.error('❌ Error al obtener perfil:', error.message)
+        setError('No se pudo cargar tu perfil.')
         setLoading(false)
         return
       }
 
       if (!data?.rol) {
-        router.replace('/definir-rol') // usar replace evita regresar con el botón atrás
+        setShowToast(true)
+        router.replace('/definir-rol')
         return
       }
 
@@ -49,8 +56,14 @@ function PerfilPage() {
     fetchPerfil()
   }, [user?.id])
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/ingresar')
+  }
+
   if (!user) return <p className="p-4">Debes iniciar sesión.</p>
   if (loading) return <p className="p-4">Cargando perfil...</p>
+  if (error) return <p className="p-4 text-red-600">{error}</p>
 
   const nombre = perfil?.full_name?.trim()
 
@@ -74,16 +87,20 @@ function PerfilPage() {
             </button>
           </Link>
           <button
+            onClick={handleLogout}
             className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl transition"
-            onClick={async () => {
-              await supabase.auth.signOut()
-              router.push('/ingresar')
-            }}
           >
             Cerrar sesión
           </button>
         </div>
       </div>
+
+      {showToast && (
+        <Toast
+          message="Debes definir tu rol antes de continuar."
+          type="warning"
+        />
+      )}
     </Layout>
   )
 }

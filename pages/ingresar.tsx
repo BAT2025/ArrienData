@@ -14,7 +14,6 @@ export default function Ingresar() {
 
   const router = useRouter()
 
-  // 🚀 Redirigir si ya está autenticado
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
@@ -43,28 +42,37 @@ export default function Ingresar() {
     setError('')
     setLoading(true)
 
+    if (!email || !password) {
+      setError('Por favor, completa todos los campos.')
+      setLoading(false)
+      return
+    }
+
     const { data: authData, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (loginError) {
-      setError('Correo o contraseña incorrectos.')
+      setError('❌ Correo o contraseña incorrectos.')
       setLoading(false)
       return
     }
 
     const user = authData?.user
     if (!user) {
-      setError('No se pudo obtener el usuario.')
+      setError('❌ No se pudo obtener el usuario.')
       setLoading(false)
       return
     }
 
-    // Esperar a que la sesión esté lista
-    await new Promise((r) => setTimeout(r, 1000))
+    if (!user.email_confirmed_at) {
+      setError('⚠️ Debes confirmar tu correo antes de ingresar.')
+      setLoading(false)
+      return
+    }
 
-    // Verificar si ya existe un perfil
+    // Verificar si el perfil ya existe
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('user_id')
@@ -72,29 +80,47 @@ export default function Ingresar() {
       .single()
 
     if (profileError && profileError.code !== 'PGRST116') {
-      setError('Error al obtener perfil.')
+      setError('❌ Error al consultar perfil.')
       setLoading(false)
       return
     }
 
+    // Si no existe, crear perfil básico
     if (!profile) {
-      const insertResult = await supabase.from('profiles').insert({
+      const { error: insertError } = await supabase.from('profiles').insert({
         user_id: user.id,
         full_name: user.user_metadata?.full_name || '',
         rol: null,
       })
 
-      if (insertResult.error) {
-        setError('No se pudo crear el perfil.')
+      if (insertError) {
+        setError('❌ No se pudo crear el perfil.')
         setLoading(false)
         return
       }
     }
 
-    // Mostrar toast y redirigir
+    // Consultar rol actual
+    const { data: rolData, error: rolError } = await supabase
+      .from('profiles')
+      .select('rol')
+      .eq('user_id', user.id)
+      .single()
+
+    if (rolError) {
+      setError('❌ No se pudo verificar el rol.')
+      setLoading(false)
+      return
+    }
+
     setShowToast(true)
+
     setTimeout(() => {
-      router.push('/perfil')
+      if (rolData?.rol) {
+        router.push('/perfil')
+      } else {
+        router.push('/definir-rol')
+      }
     }, 2000)
   }
 

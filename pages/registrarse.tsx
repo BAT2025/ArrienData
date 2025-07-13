@@ -9,13 +9,14 @@ export default function Registrarse() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [rol, setRol] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showToast, setShowToast] = useState(false)
 
   const router = useRouter()
 
-  // 🚀 Redirigir si ya está autenticado
+  // Redirigir si ya está autenticado
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
@@ -67,17 +68,30 @@ export default function Registrarse() {
       return
     }
 
-    // Crear perfil en Supabase
-    await supabase.from('profiles').insert({
+    // Crear perfil en Supabase con rol si lo seleccionó
+    const { error: profileError } = await supabase.from('profiles').insert({
       user_id: user.id,
       full_name: fullName,
-      rol: null,
+      rol: rol || null,
     })
 
+    if (profileError) {
+      setError(profileError.message)
+      setLoading(false)
+      return
+    }
+
     setShowToast(true)
+
     setTimeout(() => {
-      router.push('/definir-rol')
+      if (rol) {
+        router.push('/perfil')
+      } else {
+        router.push('/definir-rol')
+      }
     }, 2000)
+
+    setLoading(false)
   }
 
   const handleGoogleRegister = async () => {
@@ -122,6 +136,17 @@ export default function Registrarse() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* Selector de rol */}
+        <select
+          className="w-full border px-3 py-2 rounded text-gray-600"
+          value={rol}
+          onChange={(e) => setRol(e.target.value)}
+        >
+          <option value="">Selecciona tu rol (opcional)</option>
+          <option value="arrendador">Arrendador</option>
+          <option value="locatario">Locatario</option>
+        </select>
+
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
@@ -142,17 +167,3 @@ export default function Registrarse() {
       >
         {loading ? 'Redirigiendo...' : 'Registrarse con Google'}
       </button>
-
-      <p className="mt-4 text-sm text-center">
-        ¿Ya tienes cuenta?{' '}
-        <a href="/ingresar" className="text-blue-600 hover:underline">
-          Inicia sesión aquí
-        </a>
-      </p>
-
-      {showToast && (
-        <Toast message="✅ Registro exitoso. Redirigiendo..." />
-      )}
-    </div>
-  )
-}
