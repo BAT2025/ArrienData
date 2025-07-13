@@ -1,39 +1,41 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, Info } from "lucide-react";
+import { useEffect, useState } from 'react'
+import { CheckCircle, XCircle, Info, AlertTriangle } from 'lucide-react'
 
 type ToastProps = {
-  message: string;
-  type?: "success" | "error" | "info";
-  duration?: number; // en ms
-};
+  message: string
+  type?: 'success' | 'error' | 'info' | 'warning'
+  duration?: number // en ms
+}
 
 export default function Toast({
   message,
-  type = "success",
+  type = 'success',
   duration = 3000,
 }: ToastProps) {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), duration);
-    return () => clearTimeout(timer);
-  }, [duration]);
+    const timer = setTimeout(() => setVisible(false), duration)
+    return () => clearTimeout(timer)
+  }, [duration])
 
-  if (!visible) return null;
+  if (!visible) return null
 
   const iconMap = {
     success: <CheckCircle className="w-5 h-5 mr-2" />,
     error: <XCircle className="w-5 h-5 mr-2" />,
     info: <Info className="w-5 h-5 mr-2" />,
-  };
+    warning: <AlertTriangle className="w-5 h-5 mr-2" />,
+  }
 
   const bgColorMap = {
-    success: "bg-green-600",
-    error: "bg-red-600",
-    info: "bg-blue-600",
-  };
+    success: 'bg-green-600',
+    error: 'bg-red-600',
+    info: 'bg-blue-600',
+    warning: 'bg-yellow-500',
+  }
 
   return (
     <div
@@ -45,5 +47,5 @@ export default function Toast({
         <span>{message}</span>
       </div>
     </div>
-  );
+  )
 }

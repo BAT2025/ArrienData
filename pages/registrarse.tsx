@@ -16,14 +16,13 @@ export default function Registrarse() {
 
   const router = useRouter()
 
-  // Redirigir si ya está autenticado
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
       const session = data.session
 
       if (session?.user) {
-        const { data: perfil, error } = await supabase
+        const { data: perfil } = await supabase
           .from('profiles')
           .select('rol')
           .eq('user_id', session.user.id)
@@ -68,7 +67,6 @@ export default function Registrarse() {
       return
     }
 
-    // Crear perfil en Supabase con rol si lo seleccionó
     const { error: profileError } = await supabase.from('profiles').insert({
       user_id: user.id,
       full_name: fullName,
@@ -136,7 +134,6 @@ export default function Registrarse() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* Selector de rol */}
         <select
           className="w-full border px-3 py-2 rounded text-gray-600"
           value={rol}
@@ -167,3 +164,8 @@ export default function Registrarse() {
       >
         {loading ? 'Redirigiendo...' : 'Registrarse con Google'}
       </button>
+
+      {showToast && <Toast message="Registro exitoso. Redirigiendo..." type="success" />}
+    </div>
+  )
+}
