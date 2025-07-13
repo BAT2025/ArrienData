@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import Toast from '../components/ui/Toast'
@@ -14,14 +14,13 @@ export default function Ingresar() {
 
   const router = useRouter()
 
-  // 🔐 Redirigir si ya está autenticado
+  // 🚀 Redirigir si ya está autenticado
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
       const session = data.session
 
       if (session?.user) {
-        // Consulta el perfil
         const { data: perfil, error } = await supabase
           .from('profiles')
           .select('rol')
@@ -29,9 +28,9 @@ export default function Ingresar() {
           .single()
 
         if (perfil?.rol) {
-          router.replace('/perfil') // Si ya tiene rol
+          router.replace('/perfil')
         } else {
-          router.replace('/definir-rol') // Si aún no ha definido el rol
+          router.replace('/definir-rol')
         }
       }
     }
@@ -41,15 +40,15 @@ export default function Ingresar() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
+    setLoading(true)
 
-    const { data: authData, error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
-    if (error) {
+    if (loginError) {
       setError('Correo o contraseña incorrectos.')
       setLoading(false)
       return
@@ -62,6 +61,9 @@ export default function Ingresar() {
       return
     }
 
+    // Esperar a que la sesión esté lista
+    await new Promise((r) => setTimeout(r, 1000))
+
     // Verificar si ya existe un perfil
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -69,32 +71,31 @@ export default function Ingresar() {
       .eq('user_id', user.id)
       .single()
 
-    if (!profile && !profileError) {
-      // Crear perfil básico si no existe
-      await supabase.from('profiles').insert({
+    if (profileError && profileError.code !== 'PGRST116') {
+      setError('Error al obtener perfil.')
+      setLoading(false)
+      return
+    }
+
+    if (!profile) {
+      const insertResult = await supabase.from('profiles').insert({
         user_id: user.id,
         full_name: user.user_metadata?.full_name || '',
         rol: null,
       })
+
+      if (insertResult.error) {
+        setError('No se pudo crear el perfil.')
+        setLoading(false)
+        return
+      }
     }
 
     // Mostrar toast y redirigir
     setShowToast(true)
     setTimeout(() => {
-      router.push('/perfil') // o /definir-rol según prefieras
+      router.push('/perfil')
     }, 2000)
-  }
-
-  const handleGoogleLogin = async () => {
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    })
-
-    if (error) {
-      setError('Error al iniciar sesión con Google.')
-      setLoading(false)
-    }
   }
 
   return (
@@ -104,16 +105,16 @@ export default function Ingresar() {
       <form onSubmit={handleLogin} className="space-y-4">
         <input
           type="email"
-          required
           placeholder="Correo electrónico"
+          required
           className="w-full border px-3 py-2 rounded"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
-          required
           placeholder="Contraseña"
+          required
           className="w-full border px-3 py-2 rounded"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -126,29 +127,19 @@ export default function Ingresar() {
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           disabled={loading}
         >
-          {loading ? 'Ingresando...' : 'Ingresar'}
+          {loading ? 'Ingresando...' : 'Iniciar sesión'}
         </button>
       </form>
 
-      <div className="mt-4 text-center text-sm text-gray-600">ó</div>
-
-      <button
-        onClick={handleGoogleLogin}
-        className="mt-4 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 disabled:opacity-50"
-        disabled={loading}
-      >
-        {loading ? 'Redirigiendo...' : 'Ingresar con Google'}
-      </button>
-
       <p className="mt-4 text-sm text-center">
-        ¿Aún no tienes cuenta?{' '}
+        ¿No tienes cuenta?{' '}
         <a href="/registrarse" className="text-blue-600 hover:underline">
           Regístrate aquí
         </a>
       </p>
 
       {showToast && (
-        <Toast message="✅ Sesión iniciada correctamente. Redirigiendo..." />
+        <Toast message="✅ Sesión iniciada. Redirigiendo..." />
       )}
     </div>
   )
