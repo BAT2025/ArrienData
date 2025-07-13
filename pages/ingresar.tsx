@@ -19,7 +19,7 @@ export default function Ingresar() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -27,12 +27,37 @@ export default function Ingresar() {
     if (error) {
       setError("Correo o contraseña incorrectos.");
       setLoading(false);
-    } else {
-      setShowToast(true);
-      setTimeout(() => {
-        router.push("/perfil");
-      }, 2000);
+      return;
     }
+
+    const user = authData?.user;
+    if (!user) {
+      setError("No se pudo obtener el usuario.");
+      setLoading(false);
+      return;
+    }
+
+    // Verificar si ya existe un perfil
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile && !profileError) {
+      // Crear perfil básico si no existe
+      await supabase.from("profiles").insert({
+        user_id: user.id,
+        full_name: user.user_metadata?.full_name || "",
+        rol: null,
+      });
+    }
+
+    // Mostrar toast y redirigir
+    setShowToast(true);
+    setTimeout(() => {
+      router.push("/perfil"); // Puedes cambiar esta ruta a /seleccionar-rol si quieres
+    }, 2000);
   };
 
   const handleGoogleLogin = async () => {
