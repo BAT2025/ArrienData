@@ -43,3 +43,14 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
+      {toast && (
+        <Toast
+          key={toast.key}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+        />
+      )}
+    </ToastContext.Provider>
+  );
+};

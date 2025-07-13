@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useUser } from "../lib/auth";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Input } from "./ui/Input";
+import { Button } from "./ui/Button";
 
 export default function ProfileForm({ existingData }: { existingData: any }) {
   const { user } = useUser();
@@ -15,6 +15,7 @@ export default function ProfileForm({ existingData }: { existingData: any }) {
     telefono: existingData?.telefono || "",
     rol: existingData?.rol || "propietario",
   });
+
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
@@ -94,12 +95,7 @@ export default function ProfileForm({ existingData }: { existingData: any }) {
         </select>
       </div>
 
-      <Button
-        onClick={handleSubmit}
-        disabled={loading}
-        variant="primary"
-        className="w-full"
-      >
+      <Button onClick={handleSubmit} disabled={loading} variant="primary" className="w-full">
         {loading ? "Guardando..." : "Guardar perfil"}
       </Button>
 

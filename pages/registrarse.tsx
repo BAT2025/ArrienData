@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../lib/supabase";
 import Toast from "../components/ui/Toast";
-import Spinner from "../components/ui/Spinner"; // si no lo tienes, puedes reemplazar con texto "Cargando..."
+import Spinner from "../components/ui/Spinner"; // Opcional
 
 export default function Registrarse() {
   const [fullName, setFullName] = useState("");
@@ -12,13 +13,21 @@ export default function Registrarse() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoadingEmail, setIsLoadingEmail] = useState(false);
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+
   const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setIsLoadingEmail(true);
+
+    if (!fullName.trim()) {
+      setError("Por favor ingresa tu nombre completo.");
+      setIsLoadingEmail(false);
+      return;
+    }
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -30,11 +39,11 @@ export default function Registrarse() {
 
     if (signUpError) {
       setError(signUpError.message);
-      setLoading(false);
+      setIsLoadingEmail(false);
       return;
     }
 
-    // Crear perfil en tabla profiles
+    // Crear perfil en la tabla profiles
     const userId = data.user?.id;
     if (userId) {
       const { error: profileError } = await supabase.from("profiles").upsert({
@@ -45,7 +54,7 @@ export default function Registrarse() {
 
       if (profileError) {
         setError("Ocurrió un error al crear tu perfil.");
-        setLoading(false);
+        setIsLoadingEmail(false);
         return;
       }
     }
@@ -53,19 +62,19 @@ export default function Registrarse() {
     setShowToast(true);
 
     setTimeout(() => {
-      router.push("/ingresar"); // lo enviamos a iniciar sesión
+      router.push("/ingresar");
     }, 2500);
   };
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
+    setIsLoadingGoogle(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
     });
 
     if (error) {
       setError("Error al iniciar sesión con Google.");
-      setLoading(false);
+      setIsLoadingGoogle(false);
     }
   };
 
@@ -104,9 +113,9 @@ export default function Registrarse() {
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          disabled={loading}
+          disabled={isLoadingEmail}
         >
-          {loading ? "Registrando..." : "Registrarse"}
+          {isLoadingEmail ? "Registrando..." : "Registrarse"}
         </button>
       </form>
 
@@ -115,16 +124,16 @@ export default function Registrarse() {
       <button
         onClick={handleGoogleLogin}
         className="mt-4 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 disabled:opacity-50"
-        disabled={loading}
+        disabled={isLoadingGoogle}
       >
-        {loading ? "Redirigiendo..." : "Registrarse con Google"}
+        {isLoadingGoogle ? "Redirigiendo..." : "Registrarse con Google"}
       </button>
 
       <p className="mt-4 text-sm text-center">
         ¿Ya tienes cuenta?{" "}
-        <a href="/ingresar" className="text-blue-600 hover:underline">
+        <Link href="/ingresar" className="text-blue-600 hover:underline">
           Inicia sesión
-        </a>
+        </Link>
       </p>
 
       {showToast && (

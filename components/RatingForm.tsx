@@ -3,20 +3,24 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useUser } from "../lib/auth";
-import { Input } from "./ui/Input";
-import { Button } from "./ui/Button";
+import { Input } from "./ui/Input"; // ✅ corregido casing
+import { Button } from "./ui/Button"; // ✅ corregido casing
 import Toast from "./ui/Toast";
-import clsx from "clsx";
+
+interface Locatario {
+  user_id: string;
+  full_name: string | null;
+}
 
 export default function RatingForm() {
   const { user } = useUser();
-  const [locatarios, setLocatarios] = useState<any[]>([]);
+  const [locatarios, setLocatarios] = useState<Locatario[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [score, setScore] = useState(5);
   const [comentario, setComentario] = useState("");
   const [proceso, setProceso] = useState("");
-  const [showToast, setShowToast] = useState(false);
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "error" | "success">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     async function fetchLocatarios() {
@@ -29,7 +33,7 @@ export default function RatingForm() {
       if (error) {
         console.error("Error cargando locatarios:", error);
       } else {
-        setLocatarios(data);
+        setLocatarios(data as Locatario[]);
       }
     }
 
@@ -38,10 +42,12 @@ export default function RatingForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setStatus("idle");
+    setErrorMsg("");
 
     if (!user || !selectedId) {
-      setError("Debe seleccionar un locatario.");
+      setStatus("error");
+      setErrorMsg("Debe seleccionar un locatario.");
       return;
     }
 
@@ -57,20 +63,26 @@ export default function RatingForm() {
     ]);
 
     if (insertError) {
-      setError("No se pudo guardar la calificación.");
+      setStatus("error");
+      setErrorMsg("No se pudo guardar la calificación.");
     } else {
-      setShowToast(true);
-      setSelectedId("");
-      setScore(5);
-      setComentario("");
-      setProceso("");
+      setStatus("success");
+      resetForm();
     }
+  };
+
+  const resetForm = () => {
+    setSelectedId("");
+    setScore(5);
+    setComentario("");
+    setProceso("");
   };
 
   return (
     <form
       onSubmit={handleSubmit}
       className="space-y-4 max-w-md mx-auto p-6 bg-white rounded-xl shadow-md"
+      noValidate
     >
       <h2 className="text-xl font-semibold text-gray-800">Registrar calificación</h2>
 
@@ -130,28 +142,25 @@ export default function RatingForm() {
       </div>
 
       {/* Proceso judicial */}
-      <div>
-        <label htmlFor="proceso" className="block text-sm font-medium text-gray-700 mb-1">
-          Número de proceso judicial (opcional)
-        </label>
-        <Input
-          id="proceso"
-          placeholder="Ej. 25899-40-03-003-2023-00123-00"
-          value={proceso}
-          onChange={(e) => setProceso(e.target.value)}
-        />
-      </div>
+      <Input
+        id="proceso"
+        label="Número de proceso judicial (opcional)"
+        placeholder="Ej. 25899-40-03-003-2023-00123-00"
+        value={proceso}
+        onChange={(e) => setProceso(e.target.value)}
+        autoComplete="off"
+      />
 
       {/* Error */}
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {status === "error" && <p className="text-red-500 text-sm">{errorMsg}</p>}
 
       {/* Botón */}
-      <Button type="submit" className="w-full mt-2">
+      <Button type="submit" className="w-full mt-2" variant="primary">
         Guardar calificación
       </Button>
 
       {/* Toast */}
-      {showToast && <Toast message="✅ Calificación registrada con éxito." />}
+      {status === "success" && <Toast message="✅ Calificación registrada con éxito." />}
     </form>
   );
 }
