@@ -7,14 +7,14 @@ import { supabase } from '../lib/supabase'
 import Toast from '../components/ui/Toast'
 
 export default function DefinirRolPage() {
-  const { user, isLoading: userLoading } = useUser()
+  const { user } = useUser()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
-    if (!user || userLoading) return
+    if (!user) return
 
     const fetchPerfil = async () => {
       const { data, error } = await supabase
@@ -37,7 +37,7 @@ export default function DefinirRolPage() {
     }
 
     fetchPerfil()
-  }, [user, userLoading])
+  }, [user])
 
   const handleRolSeleccionado = async (rol: 'arrendador' | 'locatario') => {
     setLoading(true)
@@ -57,7 +57,7 @@ export default function DefinirRolPage() {
     setTimeout(() => router.push('/perfil'), 2000)
   }
 
-  if (!user || userLoading || loading) {
+  if (!user || loading) {
     return <p className="p-6 text-center">⏳ Cargando...</p>
   }
 
