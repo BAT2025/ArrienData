@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useUser } from "../lib/auth";
+import { withAuth } from "@/lib/withAuth";
 
 interface Calificacion {
   id: string;
@@ -12,7 +13,7 @@ interface Calificacion {
   created_at: string;
 }
 
-export default function Historial() {
+function HistorialPage() {
   const { user } = useUser();
   const [calificaciones, setCalificaciones] = useState<Calificacion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,3 +55,5 @@ export default function Historial() {
     </div>
   );
 }
+
+export default withAuth(HistorialPage, { allowedRoles: ["arrendador"] });

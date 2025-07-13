@@ -1,15 +1,17 @@
-"use client";
+'use client';
 
-import { useUser } from "../lib/auth";
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import AvatarPreview from "../components/AvatarPreview";
-import AvatarUpload from "../components/AvatarUpload";
-import CertificateUpload from "../components/CertificateUpload";
-import CertificateList from "../components/CertificateList";
-import RatingForm from "../components/RatingForm";
+import { withAuth } from '@/lib/withAuth';
+import { useUser } from '../lib/auth';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import AvatarPreview from '../components/AvatarPreview';
+import AvatarUpload from '../components/AvatarUpload';
+import CertificateUpload from '../components/CertificateUpload';
+import CertificateList from '../components/CertificateList';
+import RatingForm from '../components/RatingForm';
+import Layout from '@/components/Layout';
 
-export default function Dashboard() {
+function DashboardPage() {
   const { user } = useUser();
   const [perfil, setPerfil] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -18,9 +20,9 @@ export default function Dashboard() {
     if (!user) return;
     const fetchPerfil = async () => {
       const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
         .single();
       setPerfil(data);
       setLoading(false);
@@ -28,55 +30,70 @@ export default function Dashboard() {
     fetchPerfil();
   }, [user]);
 
-  if (!user || loading) return <p className="p-4">Cargando panel...</p>;
+  if (!user || loading) {
+    return (
+      <Layout>
+        <p className="text-center text-gray-500 mt-10">Cargando panel...</p>
+      </Layout>
+    );
+  }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-2">Tu panel</h1>
+    <Layout>
+      <h1 className="text-3xl font-semibold mb-4 text-center">Tu panel</h1>
 
       {/* Rol del usuario */}
       {perfil?.rol && (
-        <div className="mb-4 text-gray-700 flex items-center justify-center gap-2">
-          {perfil.rol === "arrendador" ? (
+        <div className="mb-6 text-center text-gray-700">
+          {perfil.rol === 'arrendador' ? (
             <>
-              <span className="text-blue-600">👤 Arrendador</span>
-              <span className="text-sm text-gray-500">(Puedes calificar locatarios y subir certificados)</span>
+              <p className="text-blue-600 font-medium">👤 Arrendador</p>
+              <p className="text-sm text-gray-500">Puedes calificar locatarios y subir certificados</p>
             </>
           ) : (
             <>
-              <span className="text-green-600">🏠 Locatario</span>
-              <span className="text-sm text-gray-500">(Tu comportamiento será calificado por los arrendadores)</span>
+              <p className="text-green-600 font-medium">🏠 Locatario</p>
+              <p className="text-sm text-gray-500">Tu comportamiento será calificado por los arrendadores</p>
             </>
           )}
         </div>
       )}
 
-      {/* Avatar y subida */}
-      <section className="mb-6">
+      {/* Avatar */}
+      <section className="mb-8 flex flex-col items-center">
         <AvatarPreview userId={user.id} />
-        <AvatarUpload />
+        <div className="mt-4">
+          <AvatarUpload />
+        </div>
       </section>
 
-      {/* Si es arrendador, muestra certificados y calificación */}
-      {perfil?.rol === "arrendador" && (
+      {/* Vista para Arrendador */}
+      {perfil?.rol === 'arrendador' && (
         <>
-          <section className="mb-6">
+          <section className="mb-10">
+            <h2 className="text-xl font-semibold mb-3">📄 Certificados</h2>
             <CertificateUpload />
             <CertificateList userId={user.id} />
           </section>
 
-          <section className="mb-6">
+          <section className="mb-10">
+            <h2 className="text-xl font-semibold mb-3">⭐ Calificar locatario</h2>
             <RatingForm />
           </section>
         </>
       )}
 
-      {/* Si es locatario, puede mostrar solo sus certificados si quieres */}
-      {perfil?.rol === "locatario" && (
-        <section className="mb-6">
+      {/* Vista para Locatario */}
+      {perfil?.rol === 'locatario' && (
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold mb-3">📄 Tus certificados</h2>
           <CertificateList userId={user.id} />
         </section>
       )}
-    </div>
+    </Layout>
   );
 }
+
+export default withAuth(DashboardPage, {
+  allowedRoles: ['arrendador', 'locatario'],
+});

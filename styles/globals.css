@@ -1,3 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fuente Inter (asegúrate de haberla instalado con: npm i @fontsource/inter) */
+@import "@fontsource/inter/variable.css";
+
+body {
+  font-family: 'Inter', sans-serif;
+  @apply bg-neutral-light text-neutral-dark;
+}
+
+/* Animación personalizada */
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useUser } from "../lib/auth";
+import { Input } from "./ui/Input";
+import { Button } from "./ui/Button";
 import Toast from "./ui/Toast";
+import clsx from "clsx";
 
 export default function RatingForm() {
   const { user } = useUser();
@@ -15,14 +18,13 @@ export default function RatingForm() {
   const [showToast, setShowToast] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔍 Consultar locatarios con rol específico
   useEffect(() => {
     async function fetchLocatarios() {
       const { data, error } = await supabase
         .from("profiles")
         .select("user_id, full_name")
-        .eq("rol", "locatario") // ✅ Solo locatarios
-        .neq("user_id", user?.id); // Excluir al arrendador mismo
+        .eq("rol", "locatario")
+        .neq("user_id", user?.id);
 
       if (error) {
         console.error("Error cargando locatarios:", error);
@@ -66,61 +68,89 @@ export default function RatingForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4">
-      <h2 className="text-xl font-semibold">Registrar calificación</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 max-w-md mx-auto p-6 bg-white rounded-xl shadow-md"
+    >
+      <h2 className="text-xl font-semibold text-gray-800">Registrar calificación</h2>
 
-      <label className="block text-sm font-medium">Selecciona locatario</label>
-      <select
-        required
-        value={selectedId}
-        onChange={(e) => setSelectedId(e.target.value)}
-        className="w-full border px-3 py-2 rounded"
-      >
-        <option value="">-- Selecciona un locatario --</option>
-        {locatarios.map((loc) => (
-          <option key={loc.user_id} value={loc.user_id}>
-            {loc.full_name || loc.user_id}
-          </option>
-        ))}
-      </select>
+      {/* Locatario */}
+      <div>
+        <label htmlFor="locatario" className="block text-sm font-medium text-gray-700 mb-1">
+          Selecciona locatario
+        </label>
+        <select
+          id="locatario"
+          required
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+          className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">-- Selecciona un locatario --</option>
+          {locatarios.map((loc) => (
+            <option key={loc.user_id} value={loc.user_id}>
+              {loc.full_name || loc.user_id}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <label className="block text-sm font-medium">Calificación</label>
-      <select
-        value={score}
-        onChange={(e) => setScore(Number(e.target.value))}
-        className="w-full border px-3 py-2 rounded"
-      >
-        <option value={5}>⭐⭐⭐⭐⭐ (Excelente)</option>
-        <option value={4}>⭐⭐⭐⭐ (Buena)</option>
-        <option value={3}>⭐⭐⭐ (Aceptable)</option>
-        <option value={2}>⭐⭐ (Regular)</option>
-        <option value={1}>⭐ (Mala)</option>
-      </select>
+      {/* Calificación */}
+      <div>
+        <label htmlFor="calificacion" className="block text-sm font-medium text-gray-700 mb-1">
+          Calificación
+        </label>
+        <select
+          id="calificacion"
+          value={score}
+          onChange={(e) => setScore(Number(e.target.value))}
+          className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value={5}>⭐⭐⭐⭐⭐ (Excelente)</option>
+          <option value={4}>⭐⭐⭐⭐ (Buena)</option>
+          <option value={3}>⭐⭐⭐ (Aceptable)</option>
+          <option value={2}>⭐⭐ (Regular)</option>
+          <option value={1}>⭐ (Mala)</option>
+        </select>
+      </div>
 
-      <textarea
-        className="w-full border px-3 py-2 rounded"
-        placeholder="Comentario sobre el comportamiento del locatario"
-        value={comentario}
-        onChange={(e) => setComentario(e.target.value)}
-        rows={3}
-      />
+      {/* Comentario */}
+      <div>
+        <label htmlFor="comentario" className="block text-sm font-medium text-gray-700 mb-1">
+          Comentario
+        </label>
+        <textarea
+          id="comentario"
+          className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Comentario sobre el comportamiento del locatario"
+          value={comentario}
+          onChange={(e) => setComentario(e.target.value)}
+          rows={3}
+        />
+      </div>
 
-      <input
-        className="w-full border px-3 py-2 rounded"
-        placeholder="Número de proceso judicial (opcional)"
-        value={proceso}
-        onChange={(e) => setProceso(e.target.value)}
-      />
+      {/* Proceso judicial */}
+      <div>
+        <label htmlFor="proceso" className="block text-sm font-medium text-gray-700 mb-1">
+          Número de proceso judicial (opcional)
+        </label>
+        <Input
+          id="proceso"
+          placeholder="Ej. 25899-40-03-003-2023-00123-00"
+          value={proceso}
+          onChange={(e) => setProceso(e.target.value)}
+        />
+      </div>
 
+      {/* Error */}
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-      >
+      {/* Botón */}
+      <Button type="submit" className="w-full mt-2">
         Guardar calificación
-      </button>
+      </Button>
 
+      {/* Toast */}
       {showToast && <Toast message="✅ Calificación registrada con éxito." />}
     </form>
   );

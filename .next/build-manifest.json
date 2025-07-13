@@ -22,10 +22,10 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/perfil": [
+    "/ver-locatario": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/perfil.js"
+      "static/chunks/pages/ver-locatario.js"
     ]
   },
   "ampFirstPages": []

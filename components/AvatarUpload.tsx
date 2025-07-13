@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useUser } from "../lib/auth";
-import Toast from "./ui/Toast"; // 👈 Asegúrate que la ruta sea correcta
+import Toast from "./ui/Toast";
 
 export default function AvatarUpload() {
   const { user } = useUser();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false); // 👈 Estado para mostrar el toast
+  const [showToast, setShowToast] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -19,7 +19,7 @@ export default function AvatarUpload() {
     setError(null);
 
     const ext = file.name.split(".").pop();
-    const filePath = `${user.id}.${ext}`;
+    const filePath = `${user.id}/avatar.${ext}`; // ✅ Cambiado aquí
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -29,9 +29,10 @@ export default function AvatarUpload() {
       });
 
     if (uploadError) {
+      console.error("Upload error:", uploadError.message); // 👈 Para consola
       setError("Error subiendo avatar");
     } else {
-      setShowToast(true); // ✅ Muestra toast si fue exitoso
+      setShowToast(true);
     }
 
     setUploading(false);
