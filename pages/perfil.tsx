@@ -9,19 +9,25 @@ import Layout from '@/components/Layout'
 import AvatarPreview from '@/components/AvatarPreview'
 import Link from 'next/link'
 
+type Perfil = {
+  full_name: string
+  rol: string
+}
+
 function PerfilPage() {
   const { user } = useUser()
   const router = useRouter()
-  const [perfil, setPerfil] = useState<any>(null)
+  const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
+    if (!user?.id) return
 
     const fetchPerfil = async () => {
+      setLoading(true)
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, rol') // ⚠️ solo los campos necesarios
+        .select('full_name, rol')
         .eq('user_id', user.id)
         .single()
 
@@ -32,7 +38,7 @@ function PerfilPage() {
       }
 
       if (!data?.rol) {
-        router.push('/definir-rol')
+        router.replace('/definir-rol') // usar replace evita regresar con el botón atrás
         return
       }
 
@@ -41,7 +47,7 @@ function PerfilPage() {
     }
 
     fetchPerfil()
-  }, [user])
+  }, [user?.id])
 
   if (!user) return <p className="p-4">Debes iniciar sesión.</p>
   if (loading) return <p className="p-4">Cargando perfil...</p>
@@ -58,7 +64,7 @@ function PerfilPage() {
         <AvatarPreview userId={user.id} />
 
         <p className="mt-4 text-sm text-gray-500 capitalize">
-          Rol: <span className="font-medium text-gray-700">{perfil.rol}</span>
+          Rol: <span className="font-medium text-gray-700">{perfil?.rol}</span>
         </p>
 
         <div className="mt-6 flex flex-col sm:flex-row justify-center gap-4">

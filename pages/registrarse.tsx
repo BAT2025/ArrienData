@@ -1,82 +1,96 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { supabase } from "../lib/supabase";
-import Toast from "../components/ui/Toast";
-import Spinner from "../components/ui/Spinner"; // Opcional
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import { supabase } from '../lib/supabase'
+import Toast from '../components/ui/Toast'
 
 export default function Registrarse() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [showToast, setShowToast] = useState(false);
-  const [isLoadingEmail, setIsLoadingEmail] = useState(false);
-  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showToast, setShowToast] = useState(false)
 
-  const router = useRouter();
+  const router = useRouter()
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoadingEmail(true);
+  // 🚀 Redirigir si ya está autenticado
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      const session = data.session
 
-    if (!fullName.trim()) {
-      setError("Por favor ingresa tu nombre completo.");
-      setIsLoadingEmail(false);
-      return;
-    }
+      if (session?.user) {
+        const { data: perfil, error } = await supabase
+          .from('profiles')
+          .select('rol')
+          .eq('user_id', session.user.id)
+          .single()
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-      },
-    });
-
-    if (signUpError) {
-      setError(signUpError.message);
-      setIsLoadingEmail(false);
-      return;
-    }
-
-    // Crear perfil en la tabla profiles
-    const userId = data.user?.id;
-    if (userId) {
-      const { error: profileError } = await supabase.from("profiles").upsert({
-        user_id: userId,
-        full_name: fullName,
-        email,
-      });
-
-      if (profileError) {
-        setError("Ocurrió un error al crear tu perfil.");
-        setIsLoadingEmail(false);
-        return;
+        if (perfil?.rol) {
+          router.replace('/perfil')
+        } else {
+          router.replace('/definir-rol')
+        }
       }
     }
 
-    setShowToast(true);
+    checkSession()
+  }, [])
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    })
+
+    if (signUpError) {
+      setError(signUpError.message)
+      setLoading(false)
+      return
+    }
+
+    const user = authData?.user
+    if (!user) {
+      setError('No se pudo registrar el usuario.')
+      setLoading(false)
+      return
+    }
+
+    // Crear perfil en Supabase
+    await supabase.from('profiles').insert({
+      user_id: user.id,
+      full_name: fullName,
+      rol: null,
+    })
+
+    setShowToast(true)
     setTimeout(() => {
-      router.push("/ingresar");
-    }, 2500);
-  };
+      router.push('/definir-rol')
+    }, 2000)
+  }
 
-  const handleGoogleLogin = async () => {
-    setIsLoadingGoogle(true);
+  const handleGoogleRegister = async () => {
+    setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
+      provider: 'google',
+    })
 
     if (error) {
-      setError("Error al iniciar sesión con Google.");
-      setIsLoadingGoogle(false);
+      setError('Error al registrar con Google.')
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="max-w-md mx-auto p-6">
@@ -85,24 +99,24 @@ export default function Registrarse() {
       <form onSubmit={handleRegister} className="space-y-4">
         <input
           type="text"
-          required
           placeholder="Nombre completo"
+          required
           className="w-full border px-3 py-2 rounded"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
         />
         <input
           type="email"
-          required
           placeholder="Correo electrónico"
+          required
           className="w-full border px-3 py-2 rounded"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
-          required
           placeholder="Contraseña"
+          required
           className="w-full border px-3 py-2 rounded"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -112,33 +126,33 @@ export default function Registrarse() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          disabled={isLoadingEmail}
+          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
+          disabled={loading}
         >
-          {isLoadingEmail ? "Registrando..." : "Registrarse"}
+          {loading ? 'Registrando...' : 'Registrarse'}
         </button>
       </form>
 
       <div className="mt-4 text-center text-sm text-gray-600">ó</div>
 
       <button
-        onClick={handleGoogleLogin}
+        onClick={handleGoogleRegister}
         className="mt-4 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 disabled:opacity-50"
-        disabled={isLoadingGoogle}
+        disabled={loading}
       >
-        {isLoadingGoogle ? "Redirigiendo..." : "Registrarse con Google"}
+        {loading ? 'Redirigiendo...' : 'Registrarse con Google'}
       </button>
 
       <p className="mt-4 text-sm text-center">
-        ¿Ya tienes cuenta?{" "}
-        <Link href="/ingresar" className="text-blue-600 hover:underline">
-          Inicia sesión
-        </Link>
+        ¿Ya tienes cuenta?{' '}
+        <a href="/ingresar" className="text-blue-600 hover:underline">
+          Inicia sesión aquí
+        </a>
       </p>
 
       {showToast && (
-        <Toast message="🎉 Registro exitoso. Revisa tu correo para confirmar tu cuenta." />
+        <Toast message="✅ Registro exitoso. Redirigiendo..." />
       )}
     </div>
-  );
+  )
 }
